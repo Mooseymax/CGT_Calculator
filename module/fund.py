@@ -2,25 +2,61 @@ from datetime import datetime, timedelta
 
 class Fund:
     def __init__(self, key, date, fund_name, units, price, book_price, book_cost, value, gain):
-        self.k = key
-        self.d = date
-        self.f = fund_name
-        self.u = units
-        self.p = price
-        self.bp = book_price
-        self.bc = book_cost
-        self.v = value
-        self.g = gain
-        self.t = []
-        self.converted = 0 # Value when converting
+        self.k = key            # Unique reference
+        self.d = date           # Initial date purchased
+        self.f = fund_name      # Fund name
+        self.u = units          # Current units
+        self.p = price          # Current price
+        self.bp = book_price    # Book cost / units
+        self.bc = book_cost     # Book cost
+        self.v = value          # Current value
+        self.g = gain           # Overall gain -> value - book cost
+        self.t = []             # List of ALL transactions
+        
+        ''' 50 unit Buy on 01/01
+            50 unit Buy on 01/05
+            40 unit Sell on 02/05
+            Remove 40 units from 30 day pool
+            50 units from 01/01
+            10 units from 01/05
+            All will then go into the S104 pool after 30 days
+            
+            Alternative:
+            60 unit Sell on 02/05
+            Remove 50 units from 30 day pool
+            40 units from 01/01
+            All in the S104 pool as 30 day pool gone
+            
+            Alternative 2:
+            50 unit Buy on 01/01
+            40 unit Sell on 01/05
+            50 unit Buy on 02/05
+            Remove 40 units from 30 day pool
+            50 units from 01/01
+            10 units from 02/05
+            All will then go into the S104 pool after 30 days'''
+        
+        self.t_pool = T_Pool()  # Transactions split between 0, 30 & 104
         
         if self.bc == None:
             self.bc = 0
         
-        if self.bp = None:
+        if self.bp == None:
             self.bp = 0
     
-    def tran(self, transaction):
+    # Function to realign all previous transactions based on latest transaction
+    def update_tran(self, transaction):
+        # 0 / 30 / 104 rule check
+        for transactions in self.t:
+            
+            if t.compare(transaction) == 0:
+                # Do if zero day
+            elif t.compare(transaction) == 30:
+                # Do if 30 day
+            else:
+                # Do if Section 104
+    
+    def tranact(self, transaction):
         t = transaction
         if t.t == 'Buy':
             self.buy(t)
@@ -45,6 +81,7 @@ class Fund:
         day_b = []  # 30 day trades
         day_x = []  # 104 trades
         
+        # Check and split transactions into separate groups
         for transactions in self.t:
             if t.compare(transaction) == 0:
                 day_a.append(transaction)
@@ -52,8 +89,12 @@ class Fund:
                 day_b.append(transaction)
             else:
                 day_x.append(transaction)
-        
-        
+
+class T_Pool:
+    def __init__(self):
+        self.a = [] # Same day trades
+        self.b = [] # 30 day trades
+        self.x = [] # 104 trades
         
 class Transaction:
     def __init__(self, transaction):
@@ -73,9 +114,7 @@ class Transaction:
         
         if delta_time.days == 0:
             return 0
-        elif delta_time.days > 0 and <= 30:
+        elif delta_time.days > 0 and delta_time.days <= 30:
             return 30
         else:
             return 104
-    
-    
