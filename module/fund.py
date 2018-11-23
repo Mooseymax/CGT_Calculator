@@ -110,7 +110,7 @@ class Fund:
         # Do if S104 not empty and all units not yet matched
         elif self.t_pool.x and not t.check_matched():
             for tran_x in self.t_pool.x:
-                t.matched += tran_x.u        # Use units in this pool
+                t.matched += tran_x.u           # Use units in this pool
                 self.u += t.u                   # Add units to fund
                 self.bc += t.v                  # Add cost of purchase
                 self.f = t.f                    # Update fund name (if changed slightly)
