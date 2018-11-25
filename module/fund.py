@@ -11,7 +11,7 @@ class Fund:
         self.bc = book_cost     # Book cost
         self.v = value          # Current value
         self.g = 0              # Overall gain -> value - book cost
-        self.t = [Transaction([self.d, self.f, 'Initial', self.u, self.p, self.v])]             # List of ALL transactions
+        self.t = [Transaction([self.k, self.d, self.f, 'Initial', self.u, self.p, self.v])]             # List of ALL transactions
         
         '''
         50 unit Buy on 01/01
@@ -30,6 +30,9 @@ class Fund:
         
         if self.bp == None:
             self.bp = 0
+    
+    def debug(self):
+        print(str(self.k) + ' ' + self.f + ' ' + str(self.u))
     
     # Function to realign all previous transactions based on latest transaction
     def update_tran(self, transaction):
@@ -179,12 +182,13 @@ class T_Pool:
         
 class Transaction:
     def __init__(self, transaction):
-        self.d = transaction[0] # Date
-        self.f = transaction[1] # Fund name
-        self.t = transaction[2] # Type of transaction
-        self.u = transaction[3] # Units
-        self.p = transaction[4] # Price
-        self.v = transaction[5] # Value
+        self.k = transaction[0] # Key
+        self.d = transaction[1] # Date
+        self.f = transaction[2] # Fund name
+        self.t = transaction[3] # Type of transaction
+        self.u = transaction[4] # Units
+        self.p = transaction[5] # Price
+        self.v = transaction[6] # Value
         
         self.matched = 0
         
