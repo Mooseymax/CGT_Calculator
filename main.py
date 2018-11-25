@@ -8,7 +8,7 @@ from module.fund import Fund, Transaction, T_Pool
 # GENERAL
 today = datetime.today()
 excel_file = 'Data.xlsx'
-output_txt = 'output.txt'
+output_txt = 'output\output.txt'
 
 # DEBUGGING
 debug_mode = False
@@ -124,3 +124,5 @@ else:
     print('FINAL VALUES')
     for fund in fund_list:
         fund.debug()
+
+output_me(str(today))
