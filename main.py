@@ -7,15 +7,23 @@ from module.fund import Fund, Transaction, T_Pool
 today = datetime.today()
 example_name = 'Fund A'
 
-example_fund = Fund(1, today, example_name, 100, 1, 1, 100, 100)
+fund_a = Fund(1, today - timedelta(days=40), example_name, 100, 1, 1, 100, 100)
+print('DEBUG: Initial units are ' + str(fund_a.u))
 
-if example_fund.f == example_name:
+if fund_a.f == example_name:
     print('1. Working')
 
-example_transaction = Transaction([today + timedelta(days=40), 'Fund A2', 'Buy', 100, 2, 200])
+transaction_a = Transaction([today, 'Fund A', 'Buy', 1000, 1, 1000])
+transaction_b = Transaction([today + timedelta(days=40), 'Fund A1', 'Sell', 400, 1.1, 550])
+transaction_c = Transaction([today + timedelta(days=41), 'Fund A1', 'Buy', 500, 1.2, 120])
+# transaction_d = Transaction([today + timedelta(days=42), 'Fund A1', 'Buy', 500, 1.3, 120])
 
-example_fund.transact(example_transaction)
+transaction_list = [transaction_a,transaction_b,transaction_c]
 
-print('DEBUG: ' + example_fund.f)
-print('DEBUG: ' + str(example_fund.u))
-print('2. Working')
+for t in transaction_list:
+    fund_a.transact(t)
+    print(' ')
+
+print(fund_a.f)
+print(fund_a.u)
+print(fund_a.bc)

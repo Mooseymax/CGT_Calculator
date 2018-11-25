@@ -13,28 +13,15 @@ class Fund:
         self.g = 0              # Overall gain -> value - book cost
         self.t = [Transaction([self.d, self.f, 'Initial', self.u, self.p, self.v])]             # List of ALL transactions
         
-        ''' 50 unit Buy on 01/01
-            50 unit Buy on 01/05
-            40 unit Sell on 02/05
-            Remove 40 units from 30 day pool
-            50 units from 01/01
-            10 units from 01/05
-            All will then go into the S104 pool after 30 days
-            
-            Alternative:
-            60 unit Sell on 02/05
-            Remove 50 units from 30 day pool
-            40 units from 01/01
-            All in the S104 pool as 30 day pool gone
-            
-            Alternative 2:
-            50 unit Buy on 01/01
-            40 unit Sell on 01/05
-            50 unit Buy on 02/05
-            Remove 40 units from 30 day pool
-            50 units from 01/01
-            10 units from 02/05
-            All will then go into the S104 pool after 30 days'''
+        '''
+        50 unit Buy on 01/01
+        40 unit Sell on 01/05
+        50 unit Buy on 02/05
+        Remove 40 units from 30 day pool
+        50 units from 01/01
+        10 units from 02/05
+        All will then go into the S104 pool after 30 days
+        '''
         
         self.t_pool = T_Pool()  # Transactions split between 0, 30 & 104
         
@@ -50,76 +37,139 @@ class Fund:
         self.t_pool.b = []  # 30 day trades
         self.t_pool.x = []  # 104 trades
         
+        current_t = transaction
+        
         # 0 / 30 / 104 rule check
         for t in self.t:
-            print('DEBUG: ' + t.f)
-            if t.compare(transaction) == 0:
+            if t.compare(current_t) == 0 and t.t == 'Sell':
                 # Do if 0 day
-                print('DEBUG: Day 0')
-                self.t_pool.a.append(transaction)
-            elif t.compare(transaction) == 30:
+                self.t_pool.a.append(t)
+            elif t.compare(current_t) == 30 and t.t == 'Sell':
                 # Do if 30 day
-                self.t_pool.b.append(transaction)
+                self.t_pool.b.append(t)
             else:
                 # Do if Section 104
-                self.t_pool.x.append(transaction)
+                self.t_pool.x.append(t)
+        
+        print('DEBUG: Updated transactions')
     
     def transact(self, transaction):
-        t = transaction
-        if t.t == 'Buy':
+        current_t = transaction
+        if current_t.t == 'Buy':
             print('DEBUG: Buy')
-            self.buy(t)
-        elif t.t == 'Sell':
-            self.sell(t)
-        elif t.t == 'Convert in':
-            self.convert_in(t)
-        elif t.t == 'Convert out':
-            self.convert_out(t)
-        elif t.t == 'Transfer in':
-            self.transfer_in(t)
-        elif t.t == 'Transfer out':
-            self.transfer_out(t)
-        elif t.t == 'Distribution':
-            self.distribution(t)
-        elif t.t == 'Equalisation':
-            self.equalisation(t)
-        
+            self.buy(current_t)
+        elif current_t.t == 'Sell':
+            print('DEBUG: Sell')
+            self.sell(current_t)
+        elif current_t.t == 'Convert in':
+            self.convert_in(current_t)
+        elif current_t.t == 'Convert out':
+            self.convert_out(current_t)
+        elif current_t.t == 'Transfer in':
+            self.transfer_in(current_t)
+        elif current_t.t == 'Transfer out':
+            self.transfer_out(current_t)
+        elif current_t.t == 'Distribution':
+            self.distribution(current_t)
+        elif current_t.t == 'Equalisation':
+            self.equalisation(current_t)
+    
+    ''' BUY TRANSACTION SECTION '''
     def buy(self, transaction):
-        t = transaction
-        print('DEBUG: ' + t.f)
+        current_t = transaction
+        print('DEBUG: ' + current_t.f)
         
         # Check and split transactions into separate groups
-        self.update_tran(t)
+        self.update_tran(current_t)
+        
+        # Stores previous averege price of S104 pool
+        price = self.bc / self.u
         
         ''' Loop through to check if matches against any existing pools '''
-        # Do if 0 day not empty and all units not yet matched
-        if self.t_pool.a and not t.check_matched():
-            print('DEBUG: Inside Day 0')
-            for tran_a in self.t_pool.a:
-                t.matched += tran_a.u
-                print("Day 0 rule triggered")
-                if t.check_matched():
+        if self.t_pool.a and not current_t.check_matched():
+            # Do if sale placed within 0 days
+            print("DEBUG: Matching Day 0 disposals")
+            for t in self.t_pool.x:
+                # Update matched units
+                matched = min(current_t.u, t.u-t.matched)
+                current_t.matched += matched
+                t. matched += matched
+                
+                # Add matched units to S104 pool at original price
+                self.u += matched
+                self.bc += (matched * price)
+                self.f = current_t.f
+                current_t.debug()
+                if current_t.check_matched():
+                    print('DEBUG: All units matched')
                     break
-        # Do if 30 day not empty and all units not yet matched
-        elif self.t_pool.b and not t.check_matched():
-            for tran_b in self.t_pool.b:
-                t.matched += tran_b.u
-                print("Day 30 rule triggered")
-                if t.check_matched():
+        if self.t_pool.b and not current_t.check_matched():
+            # Do if sale placed within 30 days
+            print("DEBUG: Matching Day 30 disposals")
+            for t in self.t_pool.b:
+                # Update matched units
+                matched = min(current_t.u, t.u-t.matched)
+                current_t.matched += matched
+                t. matched += matched
+                
+                # Add matched units to S104 pool at original price
+                self.u += matched
+                self.bc += (matched * price)
+                self.f = current_t.f
+                current_t.debug()
+                if current_t.check_matched():
+                    print('DEBUG: All units matched')
                     break
-        # Do if S104 not empty and all units not yet matched
-        elif self.t_pool.x and not t.check_matched():
-            for tran_x in self.t_pool.x:
-                t.matched += tran_x.u        # Use units in this pool
-                self.u += t.u                   # Add units to fund
-                self.bc += t.v                  # Add cost of purchase
-                self.f = t.f                    # Update fund name (if changed slightly)
-                print("Added to Section 104")   # DEBUG
-                if t.check_matched():
-                    break
+        if self.t_pool.x and not current_t.check_matched():
+            # Do if units are in the S104 section
+            print("DEBUG: Adding remainder to S104")
+           
+            matched = current_t.u - current_t.matched   # Units left to match
+            self.u += matched                           # Adds units left to match to S104
+            self.bc += matched * current_t.p            # Adds to book cost based on transaction price
+            self.f = current_t.f                        # Updates fund name
+            if current_t.check_matched():
+                print('DEBUG: All units matched')
+            
+        if not self.t:
+            # Do if no previous transactions (shouldn't ever occur)
+            print('DEBUG: First transaction')   # DEBUG
+            self.u += current_t.u               # Add units to fund
+            self.bc += current_t.v              # Add cost of purchase
+            self.f = current_t.f                # Update fund name
         
         # Adds transaction to the list
         self.t.append(transaction)
+    
+    ''' SELL TRANSACTION SECTION '''
+    def sell(self, transaction):
+        current_t = transaction
+        
+        self.u -= current_t.u
+        self.bc = self.u * self.p
+        self.f = current_t.f
+        
+        print('DEBUG: Units sold')
+        self.t.append(transaction)
+    
+    def convert_in(self, transaction):
+        current_t = transaction
+    
+    def convert_out(self, transaction):
+        current_t = transaction
+    
+    def transfer_in(self, transaction):
+        current_t = transaction
+    
+    def transfer_out(self, transaction):
+        current_t = transaction
+    
+    def distribution(self, transaction):
+        current_t = transaction
+    
+    def equalisation(self, transaction):
+        current_t = transaction
+    
 
 class T_Pool:
     def __init__(self):
@@ -141,6 +191,9 @@ class Transaction:
         if self.v == None:
             self.v = self.u * self.p    # Value bought
     
+    def debug(self):
+        print('T DEBUG: ' + self.f + ' ' + self.t + ' ' + str(self.u) + ' MATCHED: ' + str(self.matched))
+    
     # Function to check if matched off against other units in pool
     def check_matched(self):
         if self.u == self.matched:
@@ -151,6 +204,7 @@ class Transaction:
     def compare(self, external_transaction):
         t = external_transaction
         delta_time = self.d - t.d
+        delta_time = -delta_time
         
         if delta_time.days == 0:
             return 0
