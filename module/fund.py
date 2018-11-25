@@ -1,5 +1,7 @@
 from datetime import datetime, timedelta
 
+debug_mode = False
+
 class Fund:
     def __init__(self, key, date, fund_name, units, price, book_price, book_cost, value):
         self.k = key            # Unique reference
@@ -54,15 +56,18 @@ class Fund:
                 # Do if Section 104
                 self.t_pool.x.append(t)
         
-        print('DEBUG: Updated transactions')
+        if debug_mode:
+            print('DEBUG: Updated transactions')
     
     def transact(self, transaction):
         current_t = transaction
         if current_t.t == 'Buy':
-            print('DEBUG: Buy')
+            if debug_mode:
+                print('DEBUG: Buy')
             self.buy(current_t)
         elif current_t.t == 'Sell':
-            print('DEBUG: Sell')
+            if debug_mode:
+                print('DEBUG: Sell')
             self.sell(current_t)
         elif current_t.t == 'Convert in':
             self.convert_in(current_t)
@@ -80,7 +85,8 @@ class Fund:
     ''' BUY TRANSACTION SECTION '''
     def buy(self, transaction):
         current_t = transaction
-        print('DEBUG: ' + current_t.f)
+        if debug_mode:
+            print('DEBUG: ' + current_t.f)
         
         # Check and split transactions into separate groups
         self.update_tran(current_t)
@@ -91,7 +97,8 @@ class Fund:
         ''' Loop through to check if matches against any existing pools '''
         if self.t_pool.a and not current_t.check_matched():
             # Do if sale placed within 0 days
-            print("DEBUG: Matching Day 0 disposals")
+            if debug_mode:
+                print("DEBUG: Matching Day 0 disposals")
             for t in self.t_pool.x:
                 # Update matched units
                 matched = min(current_t.u, t.u-t.matched)
@@ -104,11 +111,13 @@ class Fund:
                 self.f = current_t.f
                 current_t.debug()
                 if current_t.check_matched():
-                    print('DEBUG: All units matched')
+                    if debug_mode:
+                        print('DEBUG: All units matched')
                     break
         if self.t_pool.b and not current_t.check_matched():
             # Do if sale placed within 30 days
-            print("DEBUG: Matching Day 30 disposals")
+            if debug_mode:
+                print("DEBUG: Matching Day 30 disposals")
             for t in self.t_pool.b:
                 # Update matched units
                 matched = min(current_t.u, t.u-t.matched)
@@ -121,22 +130,26 @@ class Fund:
                 self.f = current_t.f
                 current_t.debug()
                 if current_t.check_matched():
-                    print('DEBUG: All units matched')
+                    if debug_mode:
+                        print('DEBUG: All units matched')
                     break
         if self.t_pool.x and not current_t.check_matched():
             # Do if units are in the S104 section
-            print("DEBUG: Adding remainder to S104")
+            if debug_mode:
+                print("DEBUG: Adding remainder to S104")
            
             matched = current_t.u - current_t.matched   # Units left to match
             self.u += matched                           # Adds units left to match to S104
             self.bc += matched * current_t.p            # Adds to book cost based on transaction price
             self.f = current_t.f                        # Updates fund name
             if current_t.check_matched():
-                print('DEBUG: All units matched')
+                if debug_mode:
+                    print('DEBUG: All units matched')
             
         if not self.t:
             # Do if no previous transactions (shouldn't ever occur)
-            print('DEBUG: First transaction')   # DEBUG
+            if debug_mode:
+                print('DEBUG: First transaction')   # DEBUG
             self.u += current_t.u               # Add units to fund
             self.bc += current_t.v              # Add cost of purchase
             self.f = current_t.f                # Update fund name
@@ -152,7 +165,8 @@ class Fund:
         self.bc = self.u * self.p
         self.f = current_t.f
         
-        print('DEBUG: Units sold')
+        if debug_mode:
+            print('DEBUG: Units sold')
         self.t.append(transaction)
     
     def convert_in(self, transaction):

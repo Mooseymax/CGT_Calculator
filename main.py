@@ -89,13 +89,17 @@ else:
             for cell in rows:
                 current_t.append(cell.value)
             transaction_list.append(Transaction(current_t))
-        
+    
+    print('INITIAL FUND LIST')
     for fund in fund_list:
         fund.debug()
     
-    for tran in transaction_list:
-        print(tran.k)
-
+    if debug_mode:
+        for tran in transaction_list:
+            debug(tran.k)
+    
+    print('')
+    print('STARTED ADDING TRANSACTIONS')
     for tran in transaction_list:
         new_fund = True
         for fund in fund_list:
@@ -115,6 +119,8 @@ else:
             # If fund was not found after cycling
             fund_list.append(Fund(tran.k, tran.d, tran.f, tran.u,
                             tran.p, None, None, tran.v))
-        
+    
+    print('')
+    print('FINAL VALUES')
     for fund in fund_list:
         fund.debug()
