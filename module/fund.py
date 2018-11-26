@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 
 debug_mode = False
 logging = True
-logging_key = 1
+logging_key = 12
 
 class Fund:
     def __init__(self, key, date, fund_name, units, price, book_price, book_cost, value):
@@ -105,18 +105,21 @@ class Fund:
                 # Update matched units
                 matched = min(current_t.u, t.u-t.matched)
                 current_t.matched += matched
-                t. matched += matched
+                t.matched += matched
                 
                 # Add matched units to S104 pool at original price
                 self.u += matched
-                self.bc += (matched * price)
+                if matched != 0:
+                    self.bc += (matched * price)
+                else:
+                    self.bc += current_t.v
                 self.f = current_t.f
                 # Logging for debugging purposes
                 if logging and self.k == logging_key:
                     print('LOG: Fund Name = ' + self.f)
                     print('LOG: Matched ' + str(matched) + ' units against 0 day disposals')
                     print('LOG: Current Units = ' + str(self.u))
-                    print('LOG: Running Cost = ' + str(self.bc))
+                    print('LOG: Running Cost = £' + '{:.2f}'.format(self.bc))
                     print('')
                 if debug_mode:
                     current_t.debug()
@@ -136,13 +139,16 @@ class Fund:
                 
                 # Add matched units to S104 pool at original price
                 self.u += matched
-                self.bc += (matched * price)
+                if matched != 0:
+                    self.bc += (matched * price)
+                else:
+                    self.bc += current_t.v
                 self.f = current_t.f
                 if logging and self.k == logging_key:
                     print('LOG: Fund Name = ' + self.f)
                     print('LOG: Matched ' + str(matched) + ' units against 30 day disposals')
                     print('LOG: Current Units = ' + str(self.u))
-                    print('LOG: Running Cost = ' + str(self.bc))
+                    print('LOG: Running Cost = £' + '{:.2f}'.format(self.bc))
                     print('')
                 if debug_mode:
                     current_t.debug()
@@ -157,13 +163,16 @@ class Fund:
            
             matched = current_t.u - current_t.matched   # Units left to match
             self.u += matched                           # Adds units left to match to S104
-            self.bc += matched * current_t.p            # Adds to book cost based on transaction price
+            if matched != 0:
+                self.bc += (matched * current_t.p)      # Adds to book cost based on transaction price
+            else:
+                self.bc += current_t.v
             self.f = current_t.f                        # Updates fund name
             if logging and self.k == logging_key:
                 print('LOG: Fund Name = ' + self.f)
-                print('LOG: Added ' + str(matched) + ' units to the S104 pool')
+                print('LOG: Added ' + str(matched) + ' units to the S104 pool || Price = ' + str(current_t.p))
                 print('LOG: Current Units = ' + str(self.u))
-                print('LOG: Running Cost = ' + str(self.bc))
+                print('LOG: Running Cost = £' + '{:.2f}'.format(self.bc))
                 print('')
             if current_t.check_matched():
                 if debug_mode:
@@ -173,9 +182,9 @@ class Fund:
             # Do if no previous transactions (shouldn't ever occur)
             if debug_mode:
                 print('DEBUG: First transaction')   # DEBUG
-            self.u += current_t.u               # Add units to fund
-            self.bc += current_t.v              # Add cost of purchase
-            self.f = current_t.f                # Update fund name
+            self.u += current_t.u                   # Add units to fund
+            self.bc += current_t.v                  # Add cost of purchase
+            self.f = current_t.f                    # Update fund name
         
         # Adds transaction to the list
         self.t.append(transaction)
@@ -183,16 +192,17 @@ class Fund:
     ''' SELL TRANSACTION SECTION '''
     def sell(self, transaction):
         current_t = transaction
+        price = self.bc / self.u
         
         self.u -= current_t.u
-        self.bc = self.u * self.p
+        self.bc = self.u * price
         self.f = current_t.f
         
         if logging and self.k == logging_key:
             print('LOG: Fund Name = ' + self.f)
-            print('LOG: Removed ' + str(matched) + ' units from the S104 pool')
+            print('LOG: Removed ' + str(current_t.u) + ' units from the S104 pool')
             print('LOG: Current Units = ' + str(self.u))
-            print('LOG: Running Cost = ' + str(self.bc))
+            print('LOG: Running Cost = £' + '{:.2f}'.format(self.bc))
             print('')
         
         if debug_mode:
@@ -201,7 +211,6 @@ class Fund:
     
     def convert_in(self, transaction):
         current_t = transaction
-        
         
     def convert_out(self, transaction):
         current_t = transaction
