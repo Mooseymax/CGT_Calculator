@@ -118,7 +118,7 @@ else:
         if new_fund == True:
             # If fund was not found after cycling
             fund_list.append(Fund(tran.k, tran.d, tran.f, tran.u,
-                            tran.p, None, None, tran.v))
+                            tran.p, None, tran.v, tran.v))
     
     print('')
     print('FINAL VALUES')
