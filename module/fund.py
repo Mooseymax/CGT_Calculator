@@ -17,6 +17,8 @@ class Fund:
         self.g = 0              # Overall gain -> value - book cost
         self.t = [Transaction([self.k, self.d, self.f, 'Initial', self.u, self.p, self.v])]             # List of ALL transactions
         
+        self.converted = Converted(0,0)
+        
         '''
         50 unit Buy on 01/01
         40 unit Sell on 01/05
@@ -212,8 +214,37 @@ class Fund:
     def convert_in(self, transaction):
         current_t = transaction
         
+        self.u += current_t.u
+        self.bc += self.converted.bc
+        self.converted = Converted(0, 0)
+        self.f = current_t.f
+        
+        if logging and self.k == logging_key:
+            print('LOG: Fund Name = ' + self.f)
+            print('LOG: Converted in ' + str(current_t.u) + ' units to the S104 pool')
+            print('LOG: Current Units = ' + str(self.u))
+            print('LOG: Running Cost = £' + '{:.2f}'.format(self.bc))
+            print('')
+        
+        self.t.append(transaction)
+        
     def convert_out(self, transaction):
         current_t = transaction
+        price = self.bc / self.u
+        
+        self.converted.u += current_t.u
+        self.converted.bc += (price * current_t.u)
+        self.u -= current_t.u
+        self.bc = self.u * price
+        
+        if logging and self.k == logging_key:
+            print('LOG: Fund Name = ' + self.f)
+            print('LOG: Converted out' + str(converted.u) + ' units; to be converted in')
+            print('LOG: Current Units = ' + str(self.u))
+            print('LOG: Running Cost = £' + '{:.2f}'.format(self.bc))
+            print('')
+        
+        self.t.append(transaction)
     
     def transfer_in(self, transaction):
         current_t = transaction
@@ -233,6 +264,14 @@ class T_Pool:
         self.a = [] # Same day trades
         self.b = [] # 30 day trades
         self.x = [] # 104 trades
+
+class Converted:
+    def __init__(self, units, book):
+        self.u = units
+        self.bc = book
+    
+    def price(self):
+        return self.bc / self.u
         
 class Transaction:
     def __init__(self, transaction):
