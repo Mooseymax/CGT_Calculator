@@ -126,3 +126,4 @@ else:
         fund.debug()
 
 output_me(str(today))
+#Test upload from iPhone
